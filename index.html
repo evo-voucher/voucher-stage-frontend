@@ -6,7 +6,7 @@
   <title>Evolution Voucher Stage</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body{font-family:system-ui,-apple-system,sans-serif;background:#0b0b0b;color:#fff;margin:0;padding:24px}main{max-width:820px;margin:auto}.card{background:#171717;border:1px solid #333;border-radius:16px;padding:20px;margin-bottom:16px}.tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#3a2b00;color:#ffd666;font-size:13px}input,button{box-sizing:border-box;width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #444;background:#111;color:#fff}button{cursor:pointer;background:#292929}button:hover{background:#353535}.ok{color:#7ee787}.bad{color:#ff7b72}pre{white-space:pre-wrap;word-break:break-word;background:#0f0f0f;padding:12px;border-radius:10px;min-height:48px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:640px){.grid{grid-template-columns:1fr}}
+    body{font-family:system-ui,-apple-system,sans-serif;background:#0b0b0b;color:#fff;margin:0;padding:24px}main{max-width:820px;margin:auto}.card{background:#171717;border:1px solid #333;border-radius:16px;padding:20px;margin-bottom:16px}.tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#3a2b00;color:#ffd666;font-size:13px}input,button{box-sizing:border-box;width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #444;background:#111;color:#fff}button{cursor:pointer;background:#292929}button:hover{background:#353535}.ok{color:#7ee787}.bad{color:#ff7b72}.muted{color:#a8a8a8}pre{white-space:pre-wrap;word-break:break-word;background:#0f0f0f;padding:12px;border-radius:10px;min-height:48px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:640px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -30,6 +30,7 @@
 
   <div class="card">
     <h2>Read-only checks</h2>
+    <p class="muted">A successful query with no rows will show a clear “No data found” message instead of only <code>[]</code>.</p>
     <div class="grid">
       <button data-table="partners">Read partners</button>
       <button data-table="vouchers">Read vouchers</button>
@@ -53,7 +54,20 @@ document.getElementById('healthBtn').onclick=async()=>{health.textContent='Check
 document.getElementById('loginBtn').onclick=async()=>{const email=document.getElementById('email').value.trim();const password=document.getElementById('password').value;const {error}=await client.auth.signInWithPassword({email,password});if(error)authStatus.innerHTML=`<p class="bad">${error.message}</p>`;else await showSession();};
 document.getElementById('logoutBtn').onclick=async()=>{await client.auth.signOut();await showSession();};
 
-document.querySelectorAll('[data-table]').forEach(btn=>btn.onclick=async()=>{const table=btn.dataset.table;result.textContent=`Reading ${table}...`;const {data,error}=await client.from(table).select('*').limit(5);result.textContent=error?`ERROR: ${error.message}`:JSON.stringify(data,null,2);});
+document.querySelectorAll('[data-table]').forEach(btn=>btn.onclick=async()=>{
+  const table=btn.dataset.table;
+  result.textContent=`Reading ${table}...`;
+  const {data,error}=await client.from(table).select('*').limit(5);
+  if(error){
+    result.textContent=`ERROR reading ${table}: ${error.message}`;
+    return;
+  }
+  if(!Array.isArray(data) || data.length===0){
+    result.textContent=`SUCCESS: ${table} query completed. No data found in Stage.`;
+    return;
+  }
+  result.textContent=`SUCCESS: ${table} returned ${data.length} row${data.length===1?'':'s'} (showing up to 5).\n\n${JSON.stringify(data,null,2)}`;
+});
 
 showSession();
 </script>
