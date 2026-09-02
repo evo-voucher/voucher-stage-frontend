@@ -23,8 +23,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -R --line-number --exclude-dir=.git 'xfivcfwexcxsyiylgryn' .; then
-            echo 'Production Supabase project ref found.' >&2
+          if grep -R --line-number --exclude-dir=.git --exclude-dir=.github 'xfivcfwexcxsyiylgryn' .; then
+            echo 'Production Supabase project ref found in deployable Stage content.' >&2
             exit 1
           fi
           grep -q "projectId: 'tagusbcluzoxueixjmwh'" assets/js/backend-config.js
