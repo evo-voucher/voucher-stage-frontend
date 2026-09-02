@@ -1,0 +1,31 @@
+name: Voucher Stage Integrity
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - stage-bootstrap-20260902
+
+jobs:
+  stage-integrity:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Block Production backend references
+        shell: bash
+        run: |
+          if grep -R -n -E 'xfivcfwexcxsyiylgryn|sb_publishable_uu1Qyx-M3dldpZn9jq7jXw_RLTHOMh_' . \
+            --exclude-dir=.git \
+            --include='*.html' --include='*.js' --include='*.json' --include='*.css' --include='*.webmanifest' --include='*.txt' --include='*.md'; then
+            echo 'Production backend reference detected in Voucher Stage frontend.'
+            exit 1
+          fi
+      - name: Verify Stage backend contract
+        shell: bash
+        run: |
+          grep -q 'tagusbcluzoxueixjmwh' assets/js/backend-config.js
+          grep -q "environment: 'stage'" assets/js/backend-config.js
+          grep -q 'voucher-stage-frontend' assets/js/backend-config.js
